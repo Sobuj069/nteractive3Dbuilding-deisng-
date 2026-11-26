@@ -1,22 +1,15 @@
-# nteractive3Dbuilding-deisng-
+# বাড়ি প্ল্যান 3D স্টুডিও — BD Smart House Plan, BOQ & 3D Studio
 
-Interactive **House Floor Plan to 3D Model Studio (`PlanTo3D`)** built with **Three.js** (`OrbitControls` + `Raycaster`), **Motion** (`motion/three`), and **Vite** — built for showing clients custom 3D residential homes directly from floor plans, ready for static **cPanel** deployment.
+Interactive **Bangladesh Residential House Plan, BOQ Cost Estimator, Custom Foundation X-Ray & 3D Model Studio** built with **Three.js**, **Motion (`motion/three`)**, and **Vite** — 100% static **cPanel** ready (`cpanel-build` branch).
 
-## Features
-- **Interactive 2D Blueprint + 3D Cutaway Views:** Switch seamlessly between `Full House`, `1st Floor`, `Ground Plan`, and `Explode` views with animated roof/floor lifting
-- **Live Plan Customizer:** Adjust Width (`ft`), Length (`ft`), Stories (`1-Story Home` / `2-Story Duplex`), Roof Style (`Flat`, `Pitched Gable`, `Roof Terrace`), Exterior Paint Swatches, and Interior Furniture live
-- **Auto Area Calculation:** Calculates total `sq ft`, `Shotok`, and `Katha` along with individual room dimensions
-- **360° Orbit + Room Inspection:** Click any room on the 2D blueprint or directly inside the 3D house to fly in and inspect room specs
-- **cPanel Ready (`cpanel-build`):** Pure static build deployed via `git pull`
-
-## Run Locally
-```bash
-npm install
-npm run dev
-```
+## Key Features
+- **BD Construction Ingredients & Editable Market Rates (`৳`):** 1st Class Brick / Hollow Block / AAC Block, PCC/OPC Cement, 60G / 500W Rebar, Sylhet+Local Sand, Brick Khoa / Stone Chips, Finish Tiers, and Mason Labor
+- **Budget-Driven Plan Matcher:** Set budget (`৳ 15L – ৳ 3Cr`) & plot size (`ft × ft` / শতক / কাঠা) and auto-match affordable house plans
+- **Custom Foundation Builder + 3D Underground X-Ray:** Configure 1–4 built stories on a 1–6 story foundation (`Isolated`, `Combined`, `Mat/Raft`, `Cast-in-Situ Pile`) with live 3D underground column/footing/pile inspection
+- **45 Parametric Floor Plans:** Searchable & filterable across Small (`2–3 Shotok`), Medium (`3–5 Shotok`), Large (`5+ Shotok`), and Eco/Block homes with interactive 2D Blueprint + 3D Cutaway
+- **45 Architectural Designs:** 24 Exterior Styles (Exposed Red Brick, Hollow Block, Modern Minimal, Roof Garden, Sloped Tile, etc.) + 21 Interior Floor Tile Designs + live Paint/Roof/Furniture customizer
+- **Printable BOQ Estimate Sheet:** 1-click Print / Save PDF with full quantity & BDT breakdown
 
 ## Deploy to cPanel
-```bash
-npm run deploy:cpanel
-```
-Then inside cPanel Terminal (`~/interactive3dbuilding-deisng.smcloudit.top`), run `git pull`.
+1. Local PC: `npm run deploy:cpanel` (or `git push -u origin main cpanel-build`)
+2. cPanel Terminal (`~/interactive3dbuilding-deisng.smcloudit.top`): `git pull`
