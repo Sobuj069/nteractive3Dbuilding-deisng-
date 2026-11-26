@@ -5,7 +5,8 @@ import path from 'node:path';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cpanel-build-'));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cpanel-wt-'));
+const skipPush = process.argv.includes('--no-push');
 
 function resolveGitBin() {
   const candidates = ['git', 'G:\\laragon\\bin\\git\\cmd\\git.exe', 'C:\\Program Files\\Git\\cmd\\git.exe'];
@@ -34,6 +35,15 @@ function runGit(args, cwd = rootDir) {
   }).trim();
 }
 
+function hasRef(ref) {
+  try {
+    runGit(`show-ref --verify --quiet "${ref}"`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function copyRecursive(src, dest) {
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
@@ -56,36 +66,24 @@ try {
     throw new Error('dist/ folder not found after build.');
   }
 
-  console.log('2/4 Preparing cpanel-build branch...');
-  const remoteUrl = runGit('remote get-url origin');
-  const hasRemoteBranch = (() => {
-    try {
-      return Boolean(runGit('ls-remote --heads origin cpanel-build'));
-    } catch {
-      return false;
-    }
-  })();
-
-  if (hasRemoteBranch) {
-    run(`"${gitBin}" clone --branch cpanel-build --single-branch "${remoteUrl}" "${tempDir}"`, rootDir);
-    // Remove old files cleanly except .git
-    for (const name of fs.readdirSync(tempDir)) {
-      if (name === '.git') continue;
-      fs.rmSync(path.join(tempDir, name), { recursive: true, force: true });
-    }
-  } else {
-    run(`"${gitBin}" init -b cpanel-build "${tempDir}"`, rootDir);
-    runGit(`remote add origin "${remoteUrl}"`, tempDir);
+  console.log('2/4 Preparing local cpanel-build worktree...');
+  try {
+    runGit('fetch origin cpanel-build');
+  } catch {
+    // origin/cpanel-build may not exist yet
   }
 
-  // Copy local Git identity if configured
-  try {
-    const userName = runGit('config user.name');
-    const userEmail = runGit('config user.email');
-    if (userName) runGit(`config user.name "${userName}"`, tempDir);
-    if (userEmail) runGit(`config user.email "${userEmail}"`, tempDir);
-  } catch {
-    // use global git config
+  if (hasRef('refs/heads/cpanel-build')) {
+    runGit(`worktree add "${tempDir}" cpanel-build`);
+  } else if (hasRef('refs/remotes/origin/cpanel-build')) {
+    runGit(`worktree add -b cpanel-build "${tempDir}" origin/cpanel-build`);
+  } else {
+    runGit(`worktree add --orphan -b cpanel-build "${tempDir}"`);
+  }
+
+  for (const name of fs.readdirSync(tempDir)) {
+    if (name === '.git') continue;
+    fs.rmSync(path.join(tempDir, name), { recursive: true, force: true });
   }
 
   console.log('3/4 Copying dist/ build output...');
@@ -99,10 +97,21 @@ try {
   } else {
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     runGit(`commit -m "build: cpanel static bundle (${timestamp})"`, tempDir);
+    console.log('Updated local cpanel-build branch.');
+  }
+
+  if (!skipPush) {
     console.log('4/4 Pushing cpanel-build to GitHub...');
-    run(`"${gitBin}" push -u origin cpanel-build`, tempDir);
+    run(`"${gitBin}" push -u origin cpanel-build`, rootDir);
     console.log('Done! cpanel-build is live on GitHub.');
+  } else {
+    console.log('4/4 Skipped push (--no-push).');
   }
 } finally {
+  try {
+    runGit(`worktree remove --force "${tempDir}"`);
+  } catch {
+    // ignore if worktree wasn't created
+  }
   fs.rmSync(tempDir, { recursive: true, force: true });
 }
