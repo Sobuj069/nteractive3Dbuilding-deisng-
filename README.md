@@ -1,13 +1,13 @@
 # nteractive3Dbuilding-deisng-
 
-Interactive **3D Architectural Building Design & Animation** website built with **Three.js** (`OrbitControls` + `Raycaster`), **Motion** (`motion/three`), and **Vite** — configured for instant static **cPanel** deployment (`cpanel-build` branch).
+Interactive **House Floor Plan to 3D Model Studio (`PlanTo3D`)** built with **Three.js** (`OrbitControls` + `Raycaster`), **Motion** (`motion/three`), and **Vite** — built for showing clients custom 3D residential homes directly from floor plans, ready for static **cPanel** deployment.
 
 ## Features
-- **10-Story Architectural Sky Tower** with cantilevered terraces, double-height glass lobby, sky infinity pool, solar penthouse crown, and landscaped reflecting plaza
-- **Floor Assembly & Exploded View Animations** powered by `motion/three`
-- **3 Time-of-Day Lighting Modes** (`Golden Hour`, `Night Skyline`, `Daylight`)
-- **360° Orbit + Raycaster Hotspots + Floating 2D Pins** with guided architectural specs drawer
-- **cPanel Ready (`cpanel-build`)** — static build output with `.htaccess` protection & MIME types
+- **Interactive 2D Blueprint + 3D Cutaway Views:** Switch seamlessly between `Full House`, `1st Floor`, `Ground Plan`, and `Explode` views with animated roof/floor lifting
+- **Live Plan Customizer:** Adjust Width (`ft`), Length (`ft`), Stories (`1-Story Home` / `2-Story Duplex`), Roof Style (`Flat`, `Pitched Gable`, `Roof Terrace`), Exterior Paint Swatches, and Interior Furniture live
+- **Auto Area Calculation:** Calculates total `sq ft`, `Shotok`, and `Katha` along with individual room dimensions
+- **360° Orbit + Room Inspection:** Click any room on the 2D blueprint or directly inside the 3D house to fly in and inspect room specs
+- **cPanel Ready (`cpanel-build`):** Pure static build deployed via `git pull`
 
 ## Run Locally
 ```bash
@@ -19,4 +19,4 @@ npm run dev
 ```bash
 npm run deploy:cpanel
 ```
-Then inside cPanel Terminal (`~/interactive3dbuilding-deisng.smcloudit.top`), run `git pull`. See [CPANEL_DEPLOY.md](CPANEL_DEPLOY.md).
+Then inside cPanel Terminal (`~/interactive3dbuilding-deisng.smcloudit.top`), run `git pull`.

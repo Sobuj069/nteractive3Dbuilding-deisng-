@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 
 /**
- * Generates an architectural concrete / honed stone grid texture for the tower slabs & plaza.
+ * Generates clean interior porcelain floor tile texture for the 3D floor plan.
  */
-export function createArchitecturalStoneTexture({
-  baseColor = '#d6d3cd',
-  seamColor = '#a8a29e',
-  speckColor = '#e7e5e4',
-  grid = 6,
+export function createFloorTileTexture({
+  baseColor = '#e7e5e4',
+  groutColor = '#cbd5e1',
+  tiles = 8,
   size = 512,
 } = {}) {
   const canvas = document.createElement('canvas');
@@ -18,31 +17,21 @@ export function createArchitecturalStoneTexture({
   ctx.fillStyle = baseColor;
   ctx.fillRect(0, 0, size, size);
 
-  const cell = size / grid;
-  for (let r = 0; r < grid; r++) {
-    for (let c = 0; c < grid; c++) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? baseColor : speckColor;
-      ctx.globalAlpha = 0.22;
-      ctx.fillRect(c * cell, r * cell, cell, cell);
-    }
-  }
-
-  ctx.globalAlpha = 0.45;
-  ctx.strokeStyle = seamColor;
+  const step = size / tiles;
+  ctx.strokeStyle = groutColor;
   ctx.lineWidth = 2;
-  for (let i = 0; i <= grid; i++) {
-    const pos = i * cell;
+  for (let i = 0; i <= tiles; i++) {
+    const p = i * step;
     ctx.beginPath();
-    ctx.moveTo(pos, 0);
-    ctx.lineTo(pos, size);
+    ctx.moveTo(p, 0);
+    ctx.lineTo(p, size);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(0, pos);
-    ctx.lineTo(size, pos);
+    ctx.moveTo(0, p);
+    ctx.lineTo(size, p);
     ctx.stroke();
   }
-  ctx.globalAlpha = 1;
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
@@ -52,70 +41,56 @@ export function createArchitecturalStoneTexture({
 }
 
 /**
- * Generates a reflective architectural curtain-wall mullion & lit interior window texture.
+ * Generates landscaped garden grass texture around the house plot.
  */
-export function createFacadeGlassTexture({
-  isNight = false,
-  cols = 8,
-  rows = 4,
-  size = 512,
-} = {}) {
+export function createLawnTexture(size = 512) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
 
-  // Base tinted glass gradient
-  const grad = ctx.createLinearGradient(0, 0, size, size);
-  if (isNight) {
-    grad.addColorStop(0, '#0f172a');
-    grad.addColorStop(1, '#1e293b');
-  } else {
-    grad.addColorStop(0, '#38bdf8');
-    grad.addColorStop(0.5, '#0ea5e9');
-    grad.addColorStop(1, '#1e3a8a');
-  }
-  ctx.fillStyle = grad;
+  ctx.fillStyle = '#3f6f3e';
   ctx.fillRect(0, 0, size, size);
 
-  const cellW = size / cols;
-  const cellH = size / rows;
+  for (let i = 0; i < 650; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(74, 130, 72, 0.4)' : 'rgba(42, 85, 42, 0.35)';
+    ctx.fillRect(x, y, 4 + Math.random() * 8, 4 + Math.random() * 8);
+  }
 
-  // Subtle interior room glow variation
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * Generates interlocking paving stone texture for the driveway and walkways.
+ */
+export function createPaverTexture(size = 512) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(0, 0, size, size);
+
+  const cols = 8;
+  const rows = 12;
+  const cw = size / cols;
+  const ch = size / rows;
+
   for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const lit = ((r * 7 + c * 11) % 5) !== 0;
-      if (lit) {
-        const roomGrad = ctx.createLinearGradient(0, r * cellH, 0, (r + 1) * cellH);
-        if (isNight) {
-          roomGrad.addColorStop(0, 'rgba(253, 224, 71, 0.35)');
-          roomGrad.addColorStop(1, 'rgba(251, 146, 60, 0.16)');
-        } else {
-          roomGrad.addColorStop(0, 'rgba(224, 242, 254, 0.25)');
-          roomGrad.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
-        }
-        ctx.fillStyle = roomGrad;
-        ctx.fillRect(c * cellW + 4, r * cellH + 4, cellW - 8, cellH - 8);
-      }
+    const offset = (r % 2) * (cw * 0.5);
+    for (let c = -1; c <= cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? '#7c8798' : '#8a95a6';
+      ctx.fillRect(c * cw + offset + 2, r * ch + 2, cw - 4, ch - 4);
     }
   }
 
-  // Mullion grid frames
-  ctx.strokeStyle = isNight ? '#090d16' : '#1e293b';
-  ctx.lineWidth = 6;
-  for (let c = 0; c <= cols; c++) {
-    ctx.beginPath();
-    ctx.moveTo(c * cellW, 0);
-    ctx.lineTo(c * cellW, size);
-    ctx.stroke();
-  }
-  for (let r = 0; r <= rows; r++) {
-    ctx.beginPath();
-    ctx.moveTo(0, r * cellH);
-    ctx.lineTo(size, r * cellH);
-    ctx.stroke();
-  }
-
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -124,23 +99,23 @@ export function createFacadeGlassTexture({
 }
 
 /**
- * Generates warm architectural timber deck planks for soffits and sky terrace.
+ * Generates warm architectural timber texture for doors, stairs, decks, and pergolas.
  */
-export function createTimberDeckTexture(size = 512) {
+export function createTimberTexture(size = 512) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = '#7c4d2f';
+  ctx.fillStyle = '#855233';
   ctx.fillRect(0, 0, size, size);
 
-  const planks = 12;
+  const planks = 10;
   const h = size / planks;
   for (let i = 0; i < planks; i++) {
-    ctx.fillStyle = i % 2 === 0 ? '#8c5837' : '#6f4328';
+    ctx.fillStyle = i % 2 === 0 ? '#965e3c' : '#77482b';
     ctx.fillRect(0, i * h, size, h - 2);
-    ctx.fillStyle = '#4a2a18';
+    ctx.fillStyle = '#53301b';
     ctx.fillRect(0, (i + 1) * h - 2, size, 2);
   }
 
@@ -152,41 +127,29 @@ export function createTimberDeckTexture(size = 512) {
 }
 
 /**
- * Generates an animated architectural reflecting pool / infinity water texture.
+ * Generates pitched roof shingle / standing seam texture for gable roofs.
  */
-export function createWaterTexture() {
+export function createRoofTileTexture(size = 512) {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, 0, size, size);
+
+  const rows = 14;
+  const rh = size / rows;
+  for (let r = 0; r < rows; r++) {
+    ctx.fillStyle = r % 2 === 0 ? '#3b495e' : '#2d394b';
+    ctx.fillRect(0, r * rh, size, rh - 2);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, (r + 1) * rh - 2, size, 2);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
-
-  function update(elapsed) {
-    const grad = ctx.createLinearGradient(0, 0, 512, 512);
-    grad.addColorStop(0, '#0284c7');
-    grad.addColorStop(0.5, '#0369a1');
-    grad.addColorStop(1, '#0c4a6e');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
-
-    ctx.strokeStyle = 'rgba(186, 230, 253, 0.25)';
-    ctx.lineWidth = 2;
-    for (let y = 0; y < 512; y += 28) {
-      ctx.beginPath();
-      for (let x = 0; x <= 512; x += 16) {
-        const wave = Math.sin(x * 0.03 + elapsed * 2.1 + y * 0.05) * 5;
-        if (x === 0) ctx.moveTo(x, y + wave);
-        else ctx.lineTo(x, y + wave);
-      }
-      ctx.stroke();
-    }
-    texture.needsUpdate = true;
-  }
-
-  update(0);
-  return { texture, update };
+  return texture;
 }
