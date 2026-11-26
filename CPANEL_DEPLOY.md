@@ -1,17 +1,29 @@
-# cPanel Live Deployment Guide
+# cPanel Live Deployment Guide (`git pull` Auto-Deploy)
 
-This project builds to a pure static bundle inside `dist/`, so it works on any standard cPanel hosting plan without Node.js running on the server.
+Because shared cPanel servers often do not have Node.js/npm in the terminal, this project keeps a dedicated **`cpanel-build`** branch on GitHub containing **only** the compiled static output from `dist/` (`index.html`, `.htaccess`, `assets/`).
 
-## Steps to Go Live on cPanel
+## One-Time Setup in cPanel Terminal
 
-1. **Build the production files** (already generated in `dist/`):
+Inside your domain document root (for example `~/interactive3dbuilding-deisng.smcloudit.top`):
+
+```bash
+cd ~/interactive3dbuilding-deisng.smcloudit.top
+[ -f .htaccess ] && mv .htaccess .htaccess.bak
+git init -b cpanel-build
+git remote add origin https://github.com/Sobuj069/nteractive3Dbuilding-deisng-.git
+git fetch origin cpanel-build
+git checkout -f -B cpanel-build origin/cpanel-build
+git branch --set-upstream-to=origin/cpanel-build cpanel-build
+```
+
+## Updating Later
+
+1. On your local PC, rebuild & push the `cpanel-build` branch:
    ```bash
-   npm run build
+   npm run deploy:cpanel
    ```
-2. **Zip the contents inside `dist/`** (make sure `index.html`, `.htaccess`, and `assets/` are at the root of the zip—not wrapped inside an outer `dist/` folder).
-3. **Upload to cPanel**:
-   - Open **cPanel → File Manager → `public_html`** (or a subfolder like `public_html/3d`).
-   - Click **Upload**, upload the `.zip` file, and click **Extract**.
-4. **Done!** Visit your domain (e.g. `https://yourdomain.com` or `https://yourdomain.com/3d`) to view the live 3D room.
-
-> **Note:** `public/.htaccess` is automatically copied into `dist/.htaccess` during `npm run build` to enable GZIP compression, asset caching, and `.glb`/`.gltf` MIME types if you add custom 3D models later.
+2. In cPanel Terminal, simply pull:
+   ```bash
+   cd ~/interactive3dbuilding-deisng.smcloudit.top
+   git pull
+   ```
