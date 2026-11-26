@@ -1,5 +1,9 @@
 # cPanel Apache configuration for static 3D Three.js + Motion build
 
+# Protect .git directory and backups when deploying via git pull inside web root
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.htaccess\.bak
+
 # Enable 3D model MIME types (useful if you add .glb/.gltf models later)
 <IfModule mod_mime.c>
   AddType model/gltf-binary .glb
