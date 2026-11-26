@@ -3,100 +3,188 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aether Tower — Interactive 3D Building Architecture</title>
+    <title>PlanTo3D — House Floor Plan & 3D Model Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="./assets/index-B_nmmtL-.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D6PU1E55.css">
+    <script type="module" crossorigin src="./assets/index-GxiVm7-Z.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CurLMTpk.css">
   </head>
-  <body data-theme="sunset">
-    <!-- Fullscreen 3D Canvas Container -->
-    <div id="canvas-wrap" aria-label="Interactive 3D Building Design"></div>
+  <body data-theme="day">
+    <!-- Fullscreen 3D Viewport -->
+    <div id="canvas-wrap" aria-label="Interactive 3D House Model"></div>
 
-    <!-- Projected 3D Architectural Hotspot Pins -->
+    <!-- Projected 3D Room Pins -->
     <div id="hotspots-layer" aria-hidden="false"></div>
 
-    <!-- Hover Tooltip for Raycasted 3D Zones -->
+    <!-- Hover Tooltip -->
     <div id="hover-tooltip" class="hover-tooltip" role="status" aria-live="polite">
       <span class="tooltip-dot"></span>
-      <span id="tooltip-label">Double-Height Grand Atrium</span>
+      <span id="tooltip-label">Living & Dining Hall</span>
       <span class="tooltip-hint">Click to inspect</span>
     </div>
 
-    <!-- Top Navigation & Architectural Controls HUD -->
+    <!-- Top Navigation & View Cutaway Controls -->
     <header class="hud-header">
       <div class="brand-card glass">
-        <div class="brand-badge">ARCHITECTURAL 3D SHOWCASE</div>
+        <div class="brand-badge">FLOOR PLAN TO 3D VIEWER</div>
         <div class="brand-row">
-          <h1 class="brand-title">Aether Sky Tower</h1>
-          <span class="brand-pill">10 Floors • 44m</span>
+          <h1 id="hud-project-name" class="brand-title">Client Villa — Plot 24</h1>
+          <span id="hud-summary-pill" class="brand-pill">38' × 42' • 2,958 sq ft</span>
         </div>
       </div>
 
       <div class="controls-bar glass">
-        <button id="btn-explode" class="ctrl-btn" type="button" title="Separate Building Tiers Vertically">
-          <span class="ctrl-icon">🧱</span>
-          <span id="explode-label">Explode Floors</span>
+        <div class="segmented-group" role="group" aria-label="Floor Cutaway View">
+          <button class="seg-btn is-active" data-view="full" type="button">Full House</button>
+          <button class="seg-btn" data-view="first" type="button" id="btn-view-first">1st Floor</button>
+          <button class="seg-btn" data-view="ground" type="button">Ground Plan</button>
+          <button class="seg-btn" data-view="explode" type="button">Explode</button>
+        </div>
+
+        <button id="btn-assemble" class="ctrl-btn" type="button" title="Play House Build Animation">
+          <span>✨ Build</span>
         </button>
 
-        <button id="btn-assemble" class="ctrl-btn" type="button" title="Replay Building Assembly Animation">
-          <span class="ctrl-icon">✨</span>
-          <span>Assemble</span>
+        <button id="btn-time" class="ctrl-btn" type="button" title="Toggle Daylight / Evening">
+          <span id="time-icon">☀️</span>
+          <span id="time-label">Daylight</span>
         </button>
 
-        <button id="btn-time" class="ctrl-btn" type="button" title="Switch Sunlight / Golden Hour / Night">
-          <span class="ctrl-icon" id="time-icon">🌇</span>
-          <span id="time-label">Golden Hour</span>
+        <button id="btn-autorotate" class="ctrl-btn" type="button" title="Toggle 360° Orbit">
+          <span>🔄 Orbit</span>
         </button>
 
-        <button id="btn-autorotate" class="ctrl-btn" type="button" title="Toggle 360° Auto Orbit">
-          <span class="ctrl-icon">🔄</span>
-          <span>Orbit</span>
-        </button>
-
-        <button id="btn-reset" class="ctrl-btn ctrl-primary" type="button" title="Reset Camera View">
-          <span>Reset View</span>
+        <button id="btn-reset" class="ctrl-btn ctrl-primary" type="button" title="Reset Camera">
+          <span>Reset</span>
         </button>
       </div>
     </header>
 
-    <!-- Selected Architectural Zone Detail Popup -->
+    <!-- Left Sidebar: 2D Blueprint Floor Plan + Live Plan Customizer -->
+    <aside id="studio-panel" class="studio-panel glass">
+      <div class="panel-tabs">
+        <button class="tab-btn is-active" data-tab="blueprint" type="button">2D Floor Plan</button>
+        <button class="tab-btn" data-tab="customize" type="button">Customize Plan</button>
+        <button id="btn-toggle-panel" class="collapse-btn" type="button" title="Collapse/Expand Panel">
+          −
+        </button>
+      </div>
+
+      <div class="panel-body" id="panel-body">
+        <!-- TAB 1: 2D Blueprint Floor Plan -->
+        <section id="tab-blueprint" class="tab-pane is-active">
+          <div class="bp-header">
+            <div class="bp-floor-switch" id="bp-floor-switch">
+              <button class="mini-pill is-active" data-bp-floor="ground" type="button">Ground Floor</button>
+              <button class="mini-pill" data-bp-floor="first" type="button" id="bp-first-btn">1st Floor</button>
+            </div>
+            <span class="bp-hint">Click room to fly 3D</span>
+          </div>
+
+          <div id="blueprint-canvas" class="blueprint-canvas" aria-label="Interactive 2D House Floor Plan"></div>
+
+          <div class="metrics-strip">
+            <div class="metric-item">
+              <span class="metric-lbl">Total Area</span>
+              <strong id="m-sqft">2,958 sq ft</strong>
+            </div>
+            <div class="metric-item">
+              <span class="metric-lbl">Shotok</span>
+              <strong id="m-shotok">6.79</strong>
+            </div>
+            <div class="metric-item">
+              <span class="metric-lbl">Katha</span>
+              <strong id="m-katha">4.11</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: Customize Client House Plan -->
+        <section id="tab-customize" class="tab-pane">
+          <div class="form-field">
+            <label for="inp-name">Client / Project Name</label>
+            <input id="inp-name" type="text" value="Client Villa — Plot 24" maxlength="40" />
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="inp-width">Width: <strong id="val-width">38 ft</strong></label>
+              <input id="inp-width" type="range" min="26" max="56" step="2" value="38" />
+            </div>
+            <div class="form-field">
+              <label for="inp-depth">Length: <strong id="val-depth">42 ft</strong></label>
+              <input id="inp-depth" type="range" min="28" max="58" step="2" value="42" />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Stories (তলা)</label>
+            <div class="choice-row" id="grp-floors">
+              <button type="button" class="choice-btn" data-floors="1">1-Story Home</button>
+              <button type="button" class="choice-btn is-active" data-floors="2">2-Story Duplex</button>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Roof Style</label>
+            <div class="choice-row" id="grp-roof">
+              <button type="button" class="choice-btn is-active" data-roof="flat">Flat Modern</button>
+              <button type="button" class="choice-btn" data-roof="gable">Pitched</button>
+              <button type="button" class="choice-btn" data-roof="terrace">Terrace</button>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Exterior Wall Color</label>
+            <div class="swatch-row" id="swatch-row"></div>
+          </div>
+
+          <div class="form-toggle">
+            <label for="inp-furniture">Show Interior Furniture</label>
+            <input id="inp-furniture" type="checkbox" checked />
+          </div>
+
+          <button id="btn-reset-plan" class="reset-plan-btn" type="button">
+            Reset Default House Plan
+          </button>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Right Selected Room Details Popup Card -->
     <aside id="detail-card" class="detail-card glass" aria-hidden="true">
       <div class="detail-top">
-        <span id="detail-category" class="detail-category">Ground & Mezzanine Podium</span>
-        <button id="btn-close-detail" class="close-btn" type="button" aria-label="Close details">
+        <span id="detail-floor-tag" class="detail-category">Ground Floor Plan</span>
+        <button id="btn-close-detail" class="close-btn" type="button" aria-label="Close room details">
           ✕
         </button>
       </div>
 
       <div class="detail-title-row">
-        <h2 id="detail-title" class="detail-title">Double-Height Grand Atrium</h2>
-        <span id="detail-metric" class="detail-price">7.2m</span>
+        <h2 id="detail-title" class="detail-title">Living & Dining Hall</h2>
+        <span id="detail-dims" class="detail-price">21' × 22'</span>
       </div>
 
-      <div id="detail-badge" class="detail-badge">Low-E Curtain Wall • Travertine Core</div>
+      <div id="detail-area" class="detail-badge">462 sq ft</div>
 
       <p id="detail-desc" class="detail-desc"></p>
 
-      <div id="detail-specs" class="detail-specs"></div>
+      <div id="detail-features" class="detail-specs"></div>
 
       <div class="detail-actions">
-        <button id="btn-prev-item" class="nav-btn" type="button">← Prev Zone</button>
-        <button id="btn-next-item" class="nav-btn nav-btn-accent" type="button">Next Zone →</button>
+        <button id="btn-prev-room" class="nav-btn" type="button">← Prev Room</button>
+        <button id="btn-next-room" class="nav-btn nav-btn-accent" type="button">Next Room →</button>
       </div>
     </aside>
 
-    <!-- Bottom Quick Jump Dock & Controls Hint -->
+    <!-- Bottom Controls Hint -->
     <footer class="hud-footer">
-      <nav id="quick-dock" class="quick-dock glass" aria-label="Quick floor and zone navigation">
-        <button class="dock-btn is-active" data-target="overview" type="button">Overview</button>
-      </nav>
       <div class="hint-pill glass">
-        Drag to orbit 360° • Scroll to zoom • Click any floor or pin • Try “Explode Floors”
+        Drag to orbit 360° • Scroll to zoom • Click any room on 2D Plan or 3D Model • Switch “Ground Plan” / “1st Floor”
       </div>
     </footer>
 
