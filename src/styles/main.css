@@ -1,5 +1,5 @@
 :root {
-  --bg-page: #070a13;
+  --bg-page: #060a14;
   --glass-bg: rgba(15, 23, 42, 0.72);
   --glass-border: rgba(148, 163, 184, 0.22);
   --text-primary: #f8fafc;
@@ -10,9 +10,17 @@
   --shadow-lg: 0 22px 55px -12px rgba(0, 0, 0, 0.55);
 }
 
+body[data-theme='sunset'] {
+  --bg-page: #281b2d;
+  --glass-bg: rgba(24, 17, 34, 0.74);
+  --glass-border: rgba(251, 146, 60, 0.24);
+  --accent: #fbbf24;
+  --accent-soft: rgba(251, 191, 36, 0.16);
+}
+
 body[data-theme='day'] {
-  --bg-page: #e6dfd5;
-  --glass-bg: rgba(255, 252, 247, 0.78);
+  --bg-page: #dbe7f3;
+  --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(30, 41, 59, 0.14);
   --text-primary: #0f172a;
   --text-muted: #475569;
@@ -116,7 +124,7 @@ body {
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.28);
 }
 
 .controls-bar {
@@ -154,7 +162,7 @@ body {
 
 .ctrl-btn.is-active {
   background: var(--accent-soft);
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: rgba(251, 191, 36, 0.45);
   color: var(--accent);
 }
 
@@ -165,7 +173,8 @@ body {
 }
 
 .ctrl-primary:hover {
-  background: #7dd3fc;
+  filter: brightness(1.08);
+  background: var(--accent);
 }
 
 /* Projected 3D Hotspot Pins */
@@ -197,14 +206,14 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   border: 2px solid var(--pin-color, #38bdf8);
   color: #f8fafc;
   font-size: 11px;
   font-weight: 700;
   display: grid;
   place-items: center;
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
   transition: transform 0.22s ease, background 0.22s ease;
 }
 
@@ -221,7 +230,7 @@ body {
 .pin-label {
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #f8fafc;
   font-size: 12px;
@@ -268,7 +277,7 @@ body {
   gap: 8px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.92);
   border: 1px solid rgba(148, 163, 184, 0.3);
   color: #f8fafc;
   font-size: 12.5px;
@@ -297,7 +306,7 @@ body {
   top: 102px;
   right: 20px;
   z-index: 30;
-  width: min(370px, calc(100vw - 40px));
+  width: min(375px, calc(100vw - 40px));
   padding: 20px;
   border-radius: 20px;
   opacity: 0;
@@ -359,7 +368,7 @@ body {
 
 .detail-price {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--accent);
   white-space: nowrap;
@@ -444,7 +453,7 @@ body {
 }
 
 .nav-btn-accent:hover {
-  background: #7dd3fc;
+  filter: brightness(1.08);
 }
 
 /* Footer Quick Dock */
@@ -525,7 +534,7 @@ body {
 
   .detail-card {
     top: auto;
-    bottom: 105px;
+    bottom: 108px;
     left: 12px;
     right: 12px;
     width: auto;

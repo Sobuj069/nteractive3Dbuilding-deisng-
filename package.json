@@ -1,9 +1,9 @@
 {
-  "name": "interactive-3d-desk-explorer",
+  "name": "interactive-3d-building-design",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Interactive 3D Room & Desk Setup Explorer built with Three.js and Motion",
+  "description": "Interactive 3D Architectural Building Design & Animation Site built with Three.js and Motion",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

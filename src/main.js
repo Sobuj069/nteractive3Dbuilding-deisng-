@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { animate, frame } from 'motion';
 import { threeEffect } from 'motion/three';
-import { DEFAULT_CAMERA, HOTSPOTS } from './data/hotspots.js';
-import { createDeskRoom } from './scene/createDeskRoom.js';
+import { BUILDING_TIERS, DEFAULT_CAMERA, HOTSPOTS } from './data/hotspots.js';
+import { createBuildingScene } from './scene/createBuildingScene.js';
 
-// Register Motion's Three.js integration so animate() works directly on Object3D & Materials
+// Register Motion's Three.js integration
 animate.addEffect(threeEffect);
 
 const canvasWrap = document.getElementById('canvas-wrap');
@@ -17,16 +17,17 @@ const quickDock = document.getElementById('quick-dock');
 const detailCard = document.getElementById('detail-card');
 const detailCategory = document.getElementById('detail-category');
 const detailTitle = document.getElementById('detail-title');
-const detailPrice = document.getElementById('detail-price');
+const detailMetric = document.getElementById('detail-metric');
 const detailBadge = document.getElementById('detail-badge');
 const detailDesc = document.getElementById('detail-desc');
 const detailSpecs = document.getElementById('detail-specs');
 
-const btnLamp = document.getElementById('btn-lamp');
-const lampStatusEl = document.getElementById('lamp-status');
-const btnTheme = document.getElementById('btn-theme');
-const themeIcon = document.getElementById('theme-icon');
-const themeLabel = document.getElementById('theme-label');
+const btnExplode = document.getElementById('btn-explode');
+const explodeLabel = document.getElementById('explode-label');
+const btnAssemble = document.getElementById('btn-assemble');
+const btnTime = document.getElementById('btn-time');
+const timeIcon = document.getElementById('time-icon');
+const timeLabel = document.getElementById('time-label');
 const btnAutoRotate = document.getElementById('btn-autorotate');
 const btnReset = document.getElementById('btn-reset');
 const btnCloseDetail = document.getElementById('btn-close-detail');
@@ -40,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(
   42,
   window.innerWidth / window.innerHeight,
   0.1,
-  60
+  90
 );
 camera.position.set(...DEFAULT_CAMERA.position);
 
@@ -53,7 +54,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = 1.06;
 canvasWrap.appendChild(renderer.domElement);
 
 // 360 OrbitControls
@@ -61,36 +62,43 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(...DEFAULT_CAMERA.target);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
-controls.minDistance = 2.0;
-controls.maxDistance = 15.0;
-controls.minPolarAngle = 0.18;
-controls.maxPolarAngle = Math.PI / 2 - 0.06;
-controls.autoRotate = false;
-controls.autoRotateSpeed = 0.85;
+controls.minDistance = 4.5;
+controls.maxDistance = 28.0;
+controls.minPolarAngle = 0.16;
+controls.maxPolarAngle = Math.PI / 2 - 0.05;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.55;
 controls.update();
 
-// Build the 3D Desk Room
-const room = createDeskRoom(scene);
+btnAutoRotate.classList.add('is-active');
+
+// Build the 3D Architectural Building Scene
+const building = createBuildingScene(scene);
 
 // Application State
 let activeId = null;
 let hoveredId = null;
-let lampEnabled = true;
-let themeMode = 'night';
+let isExploded = false;
+const TIME_MODES = [
+  { key: 'sunset', icon: '🌇', label: 'Golden Hour' },
+  { key: 'night', icon: '🌙', label: 'Night Skyline' },
+  { key: 'day', icon: '☀️', label: 'Daylight' },
+];
+let timeIndex = 0;
 let cameraAnimations = [];
+let tierAnimations = [];
 let pointerDownPos = { x: 0, y: 0 };
 
 // Raycaster setup
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-const interactiveMeshes = Object.values(room.interactiveGroups);
+const interactiveMeshes = Object.values(building.interactiveGroups);
 
 // Build Hotspot Pins + Bottom Dock Buttons
 const hotspotPins = new Map();
 const dockButtons = new Map();
 
 HOTSPOTS.forEach((item, index) => {
-  // 2D Projected Pin
   const pin = document.createElement('button');
   pin.type = 'button';
   pin.className = 'hotspot-pin';
@@ -107,9 +115,9 @@ HOTSPOTS.forEach((item, index) => {
   hotspotPins.set(item.id, {
     el: pin,
     anchor: new THREE.Vector3(...item.anchor),
+    tierKey: item.id in building.tierGroups ? item.id : null,
   });
 
-  // Bottom Quick Dock Button
   const dockBtn = document.createElement('button');
   dockBtn.type = 'button';
   dockBtn.className = 'dock-btn';
@@ -129,9 +137,14 @@ function cancelCameraMotion() {
   cameraAnimations = [];
 }
 
+function cancelTierMotion() {
+  tierAnimations.forEach((ctrl) => ctrl.stop());
+  tierAnimations = [];
+}
+
 function flyCameraTo(pos, target) {
   cancelCameraMotion();
-  const transition = { duration: 0.95, ease: [0.22, 1, 0.36, 1] };
+  const transition = { duration: 1.0, ease: [0.22, 1, 0.36, 1] };
 
   cameraAnimations.push(
     animate(camera, { x: pos[0], y: pos[1], z: pos[2] }, transition),
@@ -139,8 +152,59 @@ function flyCameraTo(pos, target) {
   );
 }
 
-// Cancel camera transition cleanly if user grabs OrbitControls manually
 controls.addEventListener('start', cancelCameraMotion);
+
+// Staggered Architectural Building Assembly Animation via Motion
+function playAssemblyAnimation() {
+  cancelTierMotion();
+  isExploded = false;
+  btnExplode.classList.remove('is-active');
+  explodeLabel.textContent = 'Explode Floors';
+
+  BUILDING_TIERS.forEach((tier, idx) => {
+    const group = building.tierGroups[tier.key];
+    group.position.y = tier.baseY + 8.5 + idx * 1.4;
+    const ctrl = animate(
+      group,
+      { y: tier.baseY },
+      {
+        duration: 0.95,
+        delay: idx * 0.14,
+        ease: [0.22, 1, 0.36, 1],
+      }
+    );
+    tierAnimations.push(ctrl);
+  });
+}
+
+// Exploded Structural View Toggle via Motion
+function toggleExplodeView() {
+  cancelTierMotion();
+  isExploded = !isExploded;
+  btnExplode.classList.toggle('is-active', isExploded);
+  explodeLabel.textContent = isExploded ? 'Assemble Floors' : 'Explode Floors';
+
+  BUILDING_TIERS.forEach((tier, idx) => {
+    const group = building.tierGroups[tier.key];
+    const targetY = isExploded ? tier.baseY + tier.explodeOffset : tier.baseY;
+    const ctrl = animate(
+      group,
+      { y: targetY },
+      {
+        duration: 0.85,
+        delay: idx * 0.05,
+        ease: [0.22, 1, 0.36, 1],
+      }
+    );
+    tierAnimations.push(ctrl);
+  });
+
+  if (isExploded && !activeId) {
+    flyCameraTo([14.2, 10.6, 15.2], [0, 5.2, 0]);
+  } else if (!isExploded && !activeId) {
+    flyCameraTo(DEFAULT_CAMERA.position, DEFAULT_CAMERA.target);
+  }
+}
 
 function updateActiveStates(id) {
   hotspotPins.forEach(({ el }, key) => {
@@ -155,8 +219,8 @@ function showDetailCard(item) {
   detailCategory.textContent = item.category;
   detailCategory.style.color = item.accent;
   detailTitle.textContent = item.label;
-  detailPrice.textContent = item.price;
-  detailPrice.style.color = item.accent;
+  detailMetric.textContent = item.metric;
+  detailMetric.style.color = item.accent;
   detailBadge.textContent = item.badge;
   detailDesc.textContent = item.description;
 
@@ -183,19 +247,7 @@ function showDetailCard(item) {
 function hideDetailCard() {
   detailCard.classList.remove('is-open');
   detailCard.setAttribute('aria-hidden', 'true');
-  animate(
-    detailCard,
-    { opacity: 0, x: 24 },
-    { duration: 0.25, ease: 'easeOut' }
-  );
-}
-
-function pulseSelectedObject(id) {
-  if (id === 'chair') {
-    animate(room.interactiveGroups.chair, { rotateY: [-10, -20, -10] }, { duration: 0.6 });
-  } else if (id === 'lamp') {
-    toggleLamp(!lampEnabled);
-  }
+  animate(detailCard, { opacity: 0, x: 24 }, { duration: 0.25, ease: 'easeOut' });
 }
 
 function selectHotspot(id) {
@@ -203,35 +255,37 @@ function selectHotspot(id) {
   if (!item) return;
 
   activeId = id;
+  controls.autoRotate = false;
+  btnAutoRotate.classList.remove('is-active');
+
+  const tierGroup = building.tierGroups[id];
+  const yOffset = tierGroup ? tierGroup.position.y : 0;
+
   updateActiveStates(id);
-  flyCameraTo(item.cameraPos, item.cameraTarget);
+  flyCameraTo(
+    [item.cameraPos[0], item.cameraPos[1] + yOffset, item.cameraPos[2]],
+    [item.cameraTarget[0], item.cameraTarget[1] + yOffset, item.cameraTarget[2]]
+  );
   showDetailCard(item);
-  pulseSelectedObject(id);
 }
 
 function resetView() {
   activeId = null;
   updateActiveStates(null);
-  flyCameraTo(DEFAULT_CAMERA.position, DEFAULT_CAMERA.target);
+  flyCameraTo(
+    DEFAULT_CAMERA.position,
+    [DEFAULT_CAMERA.target[0], DEFAULT_CAMERA.target[1] + (isExploded ? 1.4 : 0), DEFAULT_CAMERA.target[2]]
+  );
   hideDetailCard();
 }
 
-function toggleLamp(nextState = !lampEnabled) {
-  lampEnabled = nextState;
-  btnLamp.classList.toggle('is-active', lampEnabled);
-  lampStatusEl.textContent = lampEnabled ? 'ON' : 'OFF';
-
-  // Use Motion's threeEffect to smoothly dim/brighten the Three.js SpotLight & bulb material
-  animate(room.lampSpot, { intensity: lampEnabled ? 11 : 0 }, { duration: 0.35 });
-  animate(room.bulbMat, { emissiveIntensity: lampEnabled ? 2.8 : 0.05 }, { duration: 0.35 });
-}
-
-function toggleTheme() {
-  themeMode = themeMode === 'night' ? 'day' : 'night';
-  document.body.setAttribute('data-theme', themeMode);
-  room.setLightingMode(themeMode);
-  themeIcon.textContent = themeMode === 'night' ? '🌙' : '☀️';
-  themeLabel.textContent = themeMode === 'night' ? 'Night RGB' : 'Daylight';
+function cycleTimeOfDay() {
+  timeIndex = (timeIndex + 1) % TIME_MODES.length;
+  const mode = TIME_MODES[timeIndex];
+  document.body.setAttribute('data-theme', mode.key);
+  building.setTimeOfDay(mode.key);
+  timeIcon.textContent = mode.icon;
+  timeLabel.textContent = mode.label;
 }
 
 function toggleAutoRotate() {
@@ -287,10 +341,7 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 renderer.domElement.addEventListener('pointerup', (e) => {
   const dx = e.clientX - pointerDownPos.x;
   const dy = e.clientY - pointerDownPos.y;
-  const movedDistance = Math.hypot(dx, dy);
-
-  // Only treat as click if user didn't drag to orbit
-  if (movedDistance > 6) return;
+  if (Math.hypot(dx, dy) > 6) return;
 
   const hitId = pickHotspot(e);
   if (hitId) {
@@ -299,8 +350,12 @@ renderer.domElement.addEventListener('pointerup', (e) => {
 });
 
 // UI Button Listeners
-btnLamp.addEventListener('click', () => toggleLamp());
-btnTheme.addEventListener('click', toggleTheme);
+btnExplode.addEventListener('click', toggleExplodeView);
+btnAssemble.addEventListener('click', () => {
+  resetView();
+  playAssemblyAnimation();
+});
+btnTime.addEventListener('click', cycleTimeOfDay);
 btnAutoRotate.addEventListener('click', toggleAutoRotate);
 btnReset.addEventListener('click', resetView);
 btnCloseDetail.addEventListener('click', resetView);
@@ -323,7 +378,6 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// Responsive Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -331,16 +385,17 @@ window.addEventListener('resize', () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
-// Project 3D anchors to 2D screen positions
+// Project 3D anchors (tracking tier Y movement) to 2D screen coordinates
 const projectedVec = new THREE.Vector3();
 function updateHotspotPins() {
   const width = window.innerWidth;
   const height = window.innerHeight;
 
-  hotspotPins.forEach(({ el, anchor }) => {
-    projectedVec.copy(anchor).project(camera);
-    const isBehind = projectedVec.z > 1;
-    if (isBehind) {
+  hotspotPins.forEach(({ el, anchor, tierKey }) => {
+    const tierY = tierKey ? building.tierGroups[tierKey].position.y : 0;
+    projectedVec.set(anchor.x, anchor.y + tierY, anchor.z).project(camera);
+
+    if (projectedVec.z > 1) {
       el.style.opacity = '0';
       el.style.pointerEvents = 'none';
       return;
@@ -355,7 +410,10 @@ function updateHotspotPins() {
   });
 }
 
-// Motion's frame.render runs after threeEffect preRender updates
+// Kick off cinematic architectural assembly on initial load
+playAssemblyAnimation();
+
+// Motion's frame.render loop
 let lastTime = performance.now();
 const startTime = lastTime;
 
@@ -366,7 +424,7 @@ frame.render(() => {
   lastTime = now;
 
   controls.update();
-  room.update(elapsed, delta);
+  building.update(elapsed, delta);
   updateHotspotPins();
   renderer.render(scene, camera);
 }, true);
