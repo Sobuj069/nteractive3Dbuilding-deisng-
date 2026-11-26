@@ -1,190 +1,353 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PlanTo3D — House Floor Plan & 3D Model Studio</title>
+    <title>বাড়ি প্ল্যান 3D স্টুডিও — BD House Plan, BOQ & 3D Model</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="./assets/index-GxiVm7-Z.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CurLMTpk.css">
+    <script type="module" crossorigin src="./assets/index-Bs6cxJHn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BYOTNeG3.css">
   </head>
   <body data-theme="day">
     <!-- Fullscreen 3D Viewport -->
-    <div id="canvas-wrap" aria-label="Interactive 3D House Model"></div>
+    <div id="canvas-wrap" aria-label="Interactive 3D Bangladeshi House Model"></div>
 
     <!-- Projected 3D Room Pins -->
-    <div id="hotspots-layer" aria-hidden="false"></div>
+    <div id="hotspots-layer"></div>
 
     <!-- Hover Tooltip -->
     <div id="hover-tooltip" class="hover-tooltip" role="status" aria-live="polite">
       <span class="tooltip-dot"></span>
-      <span id="tooltip-label">Living & Dining Hall</span>
-      <span class="tooltip-hint">Click to inspect</span>
+      <span id="tooltip-label">লিভিং ও ডাইনিং</span>
+      <span class="tooltip-hint">ক্লিক করুন</span>
     </div>
 
-    <!-- Top Navigation & View Cutaway Controls -->
-    <header class="hud-header">
+    <!-- Top Navigation & 3D Cutaway Controls -->
+    <header class="hud-header no-print">
       <div class="brand-card glass">
-        <div class="brand-badge">FLOOR PLAN TO 3D VIEWER</div>
+        <div class="brand-badge">BD SMART HOUSE PLAN & 3D BOQ STUDIO</div>
         <div class="brand-row">
-          <h1 id="hud-project-name" class="brand-title">Client Villa — Plot 24</h1>
-          <span id="hud-summary-pill" class="brand-pill">38' × 42' • 2,958 sq ft</span>
+          <h1 id="hud-plan-title" class="brand-title">ক্লায়েন্ট ডুপ্লেক্স ভিলা (38×42)</h1>
+          <span id="hud-cost-pill" class="brand-pill">৳ 64.5 লাখ</span>
+          <span id="hud-budget-badge" class="status-pill is-ok">✓ বাজেটের ভেতর</span>
         </div>
       </div>
 
       <div class="controls-bar glass">
-        <div class="segmented-group" role="group" aria-label="Floor Cutaway View">
-          <button class="seg-btn is-active" data-view="full" type="button">Full House</button>
-          <button class="seg-btn" data-view="first" type="button" id="btn-view-first">1st Floor</button>
-          <button class="seg-btn" data-view="ground" type="button">Ground Plan</button>
+        <div class="segmented-group" role="group" aria-label="3D View Mode">
+          <button class="seg-btn is-active" data-view="full" type="button">সম্পূর্ণ বাড়ি</button>
+          <button class="seg-btn" data-view="top" type="button" id="btn-view-top">উপরের তলা</button>
+          <button class="seg-btn" data-view="ground" type="button">নিচতলা প্ল্যান</button>
           <button class="seg-btn" data-view="explode" type="button">Explode</button>
+          <button class="seg-btn seg-xray" data-view="xray" type="button">ফাউন্ডেশন X-Ray</button>
         </div>
 
-        <button id="btn-assemble" class="ctrl-btn" type="button" title="Play House Build Animation">
-          <span>✨ Build</span>
-        </button>
-
-        <button id="btn-time" class="ctrl-btn" type="button" title="Toggle Daylight / Evening">
+        <button id="btn-assemble" class="ctrl-btn" type="button" title="Build Animation">✨ Build</button>
+        <button id="btn-time" class="ctrl-btn" type="button" title="Day / Evening">
           <span id="time-icon">☀️</span>
-          <span id="time-label">Daylight</span>
+          <span id="time-label">দিন</span>
         </button>
-
-        <button id="btn-autorotate" class="ctrl-btn" type="button" title="Toggle 360° Orbit">
-          <span>🔄 Orbit</span>
-        </button>
-
-        <button id="btn-reset" class="ctrl-btn ctrl-primary" type="button" title="Reset Camera">
-          <span>Reset</span>
-        </button>
+        <button id="btn-autorotate" class="ctrl-btn" type="button">🔄 Orbit</button>
+        <button id="btn-reset" class="ctrl-btn ctrl-primary" type="button">Reset</button>
       </div>
     </header>
 
-    <!-- Left Sidebar: 2D Blueprint Floor Plan + Live Plan Customizer -->
-    <aside id="studio-panel" class="studio-panel glass">
-      <div class="panel-tabs">
-        <button class="tab-btn is-active" data-tab="blueprint" type="button">2D Floor Plan</button>
-        <button class="tab-btn" data-tab="customize" type="button">Customize Plan</button>
-        <button id="btn-toggle-panel" class="collapse-btn" type="button" title="Collapse/Expand Panel">
-          −
-        </button>
+    <!-- Left 5-Tab Studio Workbench Panel -->
+    <aside id="studio-panel" class="studio-panel glass no-print">
+      <div class="panel-header">
+        <nav class="panel-tabs" aria-label="Studio Sections">
+          <button class="tab-btn is-active" data-tab="budget" type="button">বাজেট ও উপকরণ</button>
+          <button class="tab-btn" data-tab="foundation" type="button">ফাউন্ডেশন</button>
+          <button class="tab-btn" data-tab="plans" type="button">প্ল্যান (45)</button>
+          <button class="tab-btn" data-tab="designs" type="button">ডিজাইন (45)</button>
+          <button class="tab-btn" data-tab="boq" type="button">BOQ ও খরচ</button>
+        </nav>
+        <button id="btn-toggle-panel" class="collapse-btn" type="button" title="Hide / Show Panel">−</button>
       </div>
 
-      <div class="panel-body" id="panel-body">
-        <!-- TAB 1: 2D Blueprint Floor Plan -->
-        <section id="tab-blueprint" class="tab-pane is-active">
-          <div class="bp-header">
-            <div class="bp-floor-switch" id="bp-floor-switch">
-              <button class="mini-pill is-active" data-bp-floor="ground" type="button">Ground Floor</button>
-              <button class="mini-pill" data-bp-floor="first" type="button" id="bp-first-btn">1st Floor</button>
+      <div class="panel-body">
+        <!-- TAB 1: BUDGET & BD INGREDIENTS -->
+        <section id="tab-budget" class="tab-pane is-active">
+          <div class="budget-banner" id="budget-banner">
+            <div>
+              <span class="mini-lbl">নির্বাচিত বাজেট (Your Budget)</span>
+              <strong id="budget-display">৳ 70.0 লাখ</strong>
             </div>
-            <span class="bp-hint">Click room to fly 3D</span>
+            <button id="btn-auto-fit" class="auto-fit-btn" type="button">
+              ✨ বাজেট অনুযায়ী প্ল্যান সাজাও
+            </button>
           </div>
 
-          <div id="blueprint-canvas" class="blueprint-canvas" aria-label="Interactive 2D House Floor Plan"></div>
-
-          <div class="metrics-strip">
-            <div class="metric-item">
-              <span class="metric-lbl">Total Area</span>
-              <strong id="m-sqft">2,958 sq ft</strong>
-            </div>
-            <div class="metric-item">
-              <span class="metric-lbl">Shotok</span>
-              <strong id="m-shotok">6.79</strong>
-            </div>
-            <div class="metric-item">
-              <span class="metric-lbl">Katha</span>
-              <strong id="m-katha">4.11</strong>
-            </div>
-          </div>
-        </section>
-
-        <!-- TAB 2: Customize Client House Plan -->
-        <section id="tab-customize" class="tab-pane">
           <div class="form-field">
-            <label for="inp-name">Client / Project Name</label>
-            <input id="inp-name" type="text" value="Client Villa — Plot 24" maxlength="40" />
+            <label for="inp-budget">বাজেট স্লাইডার (৳ ১৫ লাখ – ৳ ৩০০ লাখ) <strong id="val-budget">৳ 70 লাখ</strong></label>
+            <input id="inp-budget" type="range" min="15" max="300" step="5" value="70" />
           </div>
 
           <div class="form-row-2">
             <div class="form-field">
-              <label for="inp-width">Width: <strong id="val-width">38 ft</strong></label>
-              <input id="inp-width" type="range" min="26" max="56" step="2" value="38" />
+              <label for="inp-width">প্রস্থ (Width) <strong id="val-width">38 ft</strong></label>
+              <input id="inp-width" type="range" min="26" max="58" step="2" value="38" />
             </div>
             <div class="form-field">
-              <label for="inp-depth">Length: <strong id="val-depth">42 ft</strong></label>
+              <label for="inp-depth">দৈর্ঘ্য (Length) <strong id="val-depth">42 ft</strong></label>
               <input id="inp-depth" type="range" min="28" max="58" step="2" value="42" />
             </div>
           </div>
 
+          <div class="plot-summary-bar">
+            <span>জমি: <strong id="sum-shotok">3.66 শতক</strong> (<span id="sum-katha">2.22 কাঠা</span>)</span>
+            <span>মোট এরিয়া: <strong id="sum-sqft">3,064 sq ft</strong></span>
+          </div>
+
+          <h3 class="section-heading">নির্মাণ সামগ্রী ও বাজারদর (Editable BD Rates)</h3>
+
+          <div class="ingredient-row">
+            <div class="ing-select">
+              <label for="sel-masonry">গাঁথুনি (Brick / Block)</label>
+              <select id="sel-masonry"></select>
+            </div>
+            <div class="ing-rate">
+              <label for="rate-masonry">দর (৳/পিস)</label>
+              <input id="rate-masonry" type="number" step="0.5" min="5" />
+            </div>
+          </div>
+
+          <div class="ingredient-row">
+            <div class="ing-select">
+              <label for="sel-cement">সিমেন্ট (Cement)</label>
+              <select id="sel-cement"></select>
+            </div>
+            <div class="ing-rate">
+              <label for="rate-cement">দর (৳/বস্তা)</label>
+              <input id="rate-cement" type="number" step="10" min="300" />
+            </div>
+          </div>
+
+          <div class="ingredient-row">
+            <div class="ing-select">
+              <label for="sel-rebar">রড / স্টিল (Rebar)</label>
+              <select id="sel-rebar"></select>
+            </div>
+            <div class="ing-rate">
+              <label for="rate-rebar">দর (৳/কেজি)</label>
+              <input id="rate-rebar" type="number" step="1" min="60" />
+            </div>
+          </div>
+
+          <div class="ingredient-row">
+            <div class="ing-select">
+              <label for="sel-aggregate">খোয়া / পাথর (Aggregate)</label>
+              <select id="sel-aggregate"></select>
+            </div>
+            <div class="ing-rate">
+              <label for="rate-aggregate">দর (৳/সিএফটি)</label>
+              <input id="rate-aggregate" type="number" step="5" min="70" />
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="rate-sand">বালু দর (৳/সিএফটি)</label>
+              <input id="rate-sand" type="number" step="2" min="25" value="68" />
+            </div>
+            <div class="form-field">
+              <label for="rate-labor">মিস্ত্রি রেট (৳/sq ft)</label>
+              <input id="rate-labor" type="number" step="10" min="200" value="375" />
+            </div>
+          </div>
+
           <div class="form-field">
-            <label>Stories (তলা)</label>
+            <label>ফিনিশিং কোয়ালিটি (Finish Tier)</label>
+            <div class="choice-row" id="grp-finish"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: CUSTOM FOUNDATION BUILDER -->
+        <section id="tab-foundation" class="tab-pane">
+          <div class="info-callout">
+            বাংলাদেশে অনেকেই <strong>এখন ১–২ তলা</strong> করে ভবিষ্যতের জন্য <strong>৪–৬ তলার ফাউন্ডেশন</strong> দেন। নিচে ইচ্ছামতো ফাউন্ডেশন সেট করুন:
+          </div>
+
+          <div class="form-field">
+            <label>বর্তমানে কত তলা বানাবেন (Build Floors)</label>
             <div class="choice-row" id="grp-floors">
-              <button type="button" class="choice-btn" data-floors="1">1-Story Home</button>
-              <button type="button" class="choice-btn is-active" data-floors="2">2-Story Duplex</button>
+              <button type="button" class="choice-btn" data-floors="1">১ তলা</button>
+              <button type="button" class="choice-btn is-active" data-floors="2">২ তলা</button>
+              <button type="button" class="choice-btn" data-floors="3">৩ তলা</button>
+              <button type="button" class="choice-btn" data-floors="4">৪ তলা</button>
             </div>
           </div>
 
           <div class="form-field">
-            <label>Roof Style</label>
-            <div class="choice-row" id="grp-roof">
-              <button type="button" class="choice-btn is-active" data-roof="flat">Flat Modern</button>
-              <button type="button" class="choice-btn" data-roof="gable">Pitched</button>
-              <button type="button" class="choice-btn" data-roof="terrace">Terrace</button>
+            <label>ফাউন্ডেশন ক্যাপাসিটি (Foundation Strength)</label>
+            <div class="choice-row" id="grp-found-floors">
+              <button type="button" class="choice-btn" data-ff="1">1F</button>
+              <button type="button" class="choice-btn" data-ff="2">2F</button>
+              <button type="button" class="choice-btn is-active" data-ff="3">3F</button>
+              <button type="button" class="choice-btn" data-ff="4">4F</button>
+              <button type="button" class="choice-btn" data-ff="5">5F</button>
+              <button type="button" class="choice-btn" data-ff="6">6F</button>
             </div>
           </div>
 
           <div class="form-field">
-            <label>Exterior Wall Color</label>
-            <div class="swatch-row" id="swatch-row"></div>
+            <label for="sel-soil">মাটির ধরন (Soil Condition)</label>
+            <select id="sel-soil"></select>
           </div>
 
-          <div class="form-toggle">
-            <label for="inp-furniture">Show Interior Furniture</label>
-            <input id="inp-furniture" type="checkbox" checked />
+          <div class="form-field">
+            <label>ফাউন্ডেশন টাইপ (Foundation System)</label>
+            <div id="foundation-cards" class="stack-cards"></div>
           </div>
 
-          <button id="btn-reset-plan" class="reset-plan-btn" type="button">
-            Reset Default House Plan
+          <div class="foundation-stats">
+            <div class="f-stat">
+              <span>কলাম সংখ্যা</span>
+              <strong id="f-cols">16 Columns</strong>
+            </div>
+            <div class="f-stat">
+              <span>গভীরতা (Depth)</span>
+              <strong id="f-depth">6 ft</strong>
+            </div>
+            <div class="f-stat">
+              <span>ফাউন্ডেশন ক্যাপাসিটি</span>
+              <strong id="f-cap">3-Story Base</strong>
+            </div>
+          </div>
+
+          <button id="btn-open-xray" class="primary-wide-btn" type="button">
+            🔍 3D Underground Foundation X-Ray দেখুন
           </button>
+        </section>
+
+        <!-- TAB 3: 45 FLOOR PLANS + 2D BLUEPRINT -->
+        <section id="tab-plans" class="tab-pane">
+          <div class="bp-section">
+            <div class="bp-top-row">
+              <div class="bp-floor-switch">
+                <button class="mini-pill is-active" data-bp-floor="ground" type="button">নিচতলা (Ground)</button>
+                <button class="mini-pill" data-bp-floor="upper" type="button" id="bp-upper-btn">উপরের তলা</button>
+              </div>
+              <span class="bp-hint">রুমে ক্লিক করলে 3D ফ্লাই করবে</span>
+            </div>
+            <div id="blueprint-canvas" class="blueprint-canvas"></div>
+          </div>
+
+          <div class="filter-bar">
+            <input id="inp-plan-search" type="text" placeholder="প্ল্যান খুঁজুন (যেমন: duplex, ৩ শতক, ব্লক)..." />
+            <div id="plan-cat-chips" class="chip-row"></div>
+          </div>
+
+          <div id="plans-list" class="plans-list"></div>
+        </section>
+
+        <!-- TAB 4: 45 EXTERIOR & FLOOR DESIGNS -->
+        <section id="tab-designs" class="tab-pane">
+          <div class="choice-row" style="margin-bottom: 10px;">
+            <button type="button" class="choice-btn is-active" data-dtab="exterior">এক্সটেরিয়র ডিজাইন (24)</button>
+            <button type="button" class="choice-btn" data-dtab="floor">ফ্লোর ডিজাইন (21)</button>
+          </div>
+
+          <div id="exterior-grid" class="design-grid"></div>
+          <div id="floor-grid" class="design-grid" style="display: none;"></div>
+
+          <div class="custom-design-box">
+            <h4 class="mini-heading">কাস্টম ডিজাইন এডিট (Custom Tweaks)</h4>
+            <div class="form-field">
+              <label>ছাদের স্টাইল (Roof Style)</label>
+              <div class="choice-row" id="grp-roof">
+                <button type="button" class="choice-btn is-active" data-roof="flat">ফ্ল্যাট মডার্ন</button>
+                <button type="button" class="choice-btn" data-roof="gable">টালি / ঢালু</button>
+                <button type="button" class="choice-btn" data-roof="terrace">রুফ গার্ডেন</button>
+              </div>
+            </div>
+            <div class="form-field">
+              <label>দেয়ালের টেক্সচার (Wall Pattern)</label>
+              <div class="choice-row" id="grp-wallpat">
+                <button type="button" class="choice-btn is-active" data-wpat="plaster">প্লাস্টার</button>
+                <button type="button" class="choice-btn" data-wpat="brick">লাল ইট</button>
+                <button type="button" class="choice-btn" data-wpat="block">হলো ব্লক</button>
+              </div>
+            </div>
+            <div class="form-row-2" style="align-items: center;">
+              <div class="form-field" style="margin-bottom: 0;">
+                <label for="inp-custom-color">দেয়ালের রং (Paint)</label>
+                <input id="inp-custom-color" type="color" value="#f4f0e8" />
+              </div>
+              <label class="inline-check">
+                <input id="inp-furniture" type="checkbox" checked />
+                <span>ফার্নিচার দেখান</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: BOQ & COST ESTIMATE -->
+        <section id="tab-boq" class="tab-pane">
+          <div class="boq-summary-grid">
+            <div class="boq-kpi">
+              <span>মোট খরচ (Total BOQ)</span>
+              <strong id="boq-total-short">৳ 64.5 লাখ</strong>
+              <small id="boq-total-exact">৳ 64,50,000</small>
+            </div>
+            <div class="boq-kpi">
+              <span>প্রতি Sq Ft খরচ</span>
+              <strong id="boq-per-sqft">৳ 2,105</strong>
+              <small id="boq-built-area">3,064 sq ft</small>
+            </div>
+          </div>
+
+          <div id="boq-budget-note" class="boq-status-box"></div>
+
+          <div class="boq-table-wrap">
+            <table class="boq-table">
+              <thead>
+                <tr>
+                  <th>উপকরণ / খাত</th>
+                  <th>পরিমাণ (Qty)</th>
+                  <th>খরচ (BDT)</th>
+                </tr>
+              </thead>
+              <tbody id="boq-tbody"></tbody>
+            </table>
+          </div>
+
+          <button id="btn-print-boq" class="primary-wide-btn" type="button">
+            🖨️ Print / Save PDF Estimate Sheet
+          </button>
+
+          <p class="disclaimer">
+            * এটি প্রাথমিক প্রাক্কলন (Preliminary BOQ)। চূড়ান্ত স্ট্রাকচারাল ডিজাইনের আগে সার্টিফায়েড সিভিল ইঞ্জিনিয়ার দিয়ে সয়েল টেস্ট করিয়ে নিন।
+          </p>
         </section>
       </div>
     </aside>
 
-    <!-- Right Selected Room Details Popup Card -->
-    <aside id="detail-card" class="detail-card glass" aria-hidden="true">
+    <!-- Right Selected Room Details Card -->
+    <aside id="detail-card" class="detail-card glass no-print" aria-hidden="true">
       <div class="detail-top">
-        <span id="detail-floor-tag" class="detail-category">Ground Floor Plan</span>
-        <button id="btn-close-detail" class="close-btn" type="button" aria-label="Close room details">
-          ✕
-        </button>
+        <span id="detail-floor-tag" class="detail-category">নিচতলা (Ground Floor)</span>
+        <button id="btn-close-detail" class="close-btn" type="button">✕</button>
       </div>
-
       <div class="detail-title-row">
-        <h2 id="detail-title" class="detail-title">Living & Dining Hall</h2>
+        <h2 id="detail-title" class="detail-title">লিভিং ও ডাইনিং</h2>
         <span id="detail-dims" class="detail-price">21' × 22'</span>
       </div>
-
       <div id="detail-area" class="detail-badge">462 sq ft</div>
-
       <p id="detail-desc" class="detail-desc"></p>
-
-      <div id="detail-features" class="detail-specs"></div>
-
-      <div class="detail-actions">
-        <button id="btn-prev-room" class="nav-btn" type="button">← Prev Room</button>
-        <button id="btn-next-room" class="nav-btn nav-btn-accent" type="button">Next Room →</button>
-      </div>
     </aside>
 
-    <!-- Bottom Controls Hint -->
-    <footer class="hud-footer">
+    <!-- Printable Client Estimate Sheet (Only visible when Printing / Save PDF) -->
+    <section id="print-sheet" class="print-only"></section>
+
+    <footer class="hud-footer no-print">
       <div class="hint-pill glass">
-        Drag to orbit 360° • Scroll to zoom • Click any room on 2D Plan or 3D Model • Switch “Ground Plan” / “1st Floor”
+        মাউস ড্র্যাগ করে ৩৬০° ঘোরান • স্ক্রল করে জুম করুন • “ফাউন্ডেশন X-Ray” ক্লিক করে মাটির নিচের কলাম/পাইলিং দেখুন
       </div>
     </footer>
 
